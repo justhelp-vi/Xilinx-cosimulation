@@ -65,7 +65,7 @@ Standard QEMU uses a DTB to know what hardware exists. For co-simulation, the DT
 
 ## 5. Library Roles
 
-- **`libsystemctlm-soc`**: This is the heart of the C++ side. It provides the [xilinx_zynqmp](file://$PROJ_ROOT/libsystemctlm-soc/soc/xilinx/zynqmp/xilinx-zynqmp.h#41-174) object which contains the Remote-Port client implementation.
+- **`libsystemctlm-soc`**: This is the heart of the C++ side. It provides the [xilinx_zynqmp](file:///home/testuser/Qemu/libsystemctlm-soc/soc/xilinx/zynqmp/xilinx-zynqmp.h#41-174) object which contains the Remote-Port client implementation.
 - **`systemctlm-cosim-demo`**: High-level examples that instantiate the SoC models and connect them to user-defined SystemC blocks (like the DMA or memory blocks in our demo).
 - **`systemc` (The Lib)**: Provides the timing and event kernel that manages the flow of transactions.
 
@@ -82,11 +82,11 @@ The `-sync-quantum 10000` parameter is critical:
 
 ## 7. Code Breakdown: How it all Works
 
-### The Software: [app.c](file://$PROJ_ROOT/systemctlm-cosim-demo/app.c)
+### The Software: [app.c](file:///home/testuser/Qemu/systemctlm-cosim-demo/app.c)
 This usage model explains what happens when you run `app.elf`.
 
 1.  **Definitions**: `#define DEBUG_DEV_ADDR 0xA0020000` tells the code where to send data. 
-    *   *Note*: This matches the address mapped in [zynqmp_demo.cc](file://$PROJ_ROOT/systemctlm-cosim-demo/zynqmp_demo.cc).
+    *   *Note*: This matches the address mapped in [zynqmp_demo.cc](file:///home/testuser/Qemu/systemctlm-cosim-demo/zynqmp_demo.cc).
 2.  **Pointer Magic**: `volatile uint32_t *ptr = ...` bypasses the CPU cache. If we didn't use `volatile`, the CPU might "optimize" our write by not actually sending it to the hardware because it thinks no one is reading it efficiently.
 3.  **The Loop**:
     ```c
@@ -97,7 +97,7 @@ This usage model explains what happens when you run `app.elf`.
     }
     ```
 
-### The Hardware: [zynqmp_demo.cc](file://$PROJ_ROOT/systemctlm-cosim-demo/zynqmp_demo.cc)
+### The Hardware: [zynqmp_demo.cc](file:///home/testuser/Qemu/systemctlm-cosim-demo/zynqmp_demo.cc)
 This C++ file defines the "Virtual Motherboard".
 
 1.  **`xilinx_zynqmp zynq`**: This object represents the ZynqMP chip itself (instantiated from `libsystemctlm-soc`).
@@ -127,17 +127,17 @@ When writing software, use this map to target specific simulation components.
 In your viewer, the hierarchy maps directly to the ZynqMP architecture:
 
 ### 🟢 The PS (Processing System)
-*   **Folder Name**: [zynq](file://$PROJ_ROOT/libsystemctlm-soc/soc/xilinx/zynqmp/xilinx-zynqmp.h#41-174)
+*   **Folder Name**: [zynq](file:///home/testuser/Qemu/libsystemctlm-soc/soc/xilinx/zynqmp/xilinx-zynqmp.h#41-174)
 *   **What it is**: This represents the Hard Silicon (ARM CPUs + Memory Controller).
 *   **Where it runs**: This block is actually purely virtual! It is a proxy for the QEMU process.
 *   **Signals**: You typically won't see internal CPU signals here (like registers) because QEMU hides them. You only see the **Ports** exiting the PS.
 
 ### 🔵 The PL (Programmable Logic)
-*   **Folder Names**: `demodma`, `tlm2apb-tmr-bridge`, [debug](file://$PROJ_ROOT/systemctlm-cosim-demo/debugdev.cc#40-46)
+*   **Folder Names**: `demodma`, `tlm2apb-tmr-bridge`, [debug](file:///home/testuser/Qemu/systemctlm-cosim-demo/debugdev.cc#40-46)
 *   **What they are**: These are the "FPGA" logic blocks.
     *   **`demodma`**: A custom DMA engine written in SystemC.
     *   **`tlm2apb-bridge`**: Logic that converts the AXI bus to APB bus.
-    *   **[debug](file://$PROJ_ROOT/systemctlm-cosim-demo/debugdev.cc#40-46)**: The custom "printer" device.
+    *   **[debug](file:///home/testuser/Qemu/systemctlm-cosim-demo/debugdev.cc#40-46)**: The custom "printer" device.
 *   **Where they run**: These are executed natively by the SystemC kernel.
 *   **Signals**: You can see EVERYTHING here (wires, state machines, registers) because they are fully simulated models.
 
@@ -196,11 +196,11 @@ You asked why QEMU waits for the PMU node but not others.
 How does a write to `0xA0020000` actually leave QEMU? It's a chain of 3 links:
 
 1.  **The Range (DTB)**: 
-    Inside the [zcu102-arm.cosim.dtb](file://$PROJ_ROOT/qemu-devicetrees/LATEST/LQSPI_XIP/zcu102-arm.cosim.dtb), there is a node `hpm0_fpd@a0000000`. 
+    Inside the [zcu102-arm.cosim.dtb](file:///home/testuser/Qemu/qemu-devicetrees/LATEST/LQSPI_XIP/zcu102-arm.cosim.dtb), there is a node `hpm0_fpd@a0000000`. 
     - It defines a `reg` range of `0xA0000000` to `0xB0000000`.
     - It has a property `remote-ports = <0x63 0x09>`. (0x63 = `cosim@0` socket, 0x09 = **Port ID 9**).
 2.  **The Connection (SystemC)**: 
-    When we run `./zynqmp_demo`, it connects to the socket. Inside [xilinx-zynqmp.cc](file://$PROJ_ROOT/libsystemctlm-soc/soc/xilinx/zynqmp/xilinx-zynqmp.cc), the code runs:
+    When we run `./zynqmp_demo`, it connects to the socket. Inside [xilinx-zynqmp.cc](file:///home/testuser/Qemu/libsystemctlm-soc/soc/xilinx/zynqmp/xilinx-zynqmp.cc), the code runs:
     ```cpp
     register_dev(9, &rp_axi_hpm0_fpd); // Links Port ID 9 to this TLM object
     ```
@@ -266,7 +266,7 @@ You asked: *"How do we add the nodes and where are the references?"*
 
 Xilinx uses a **Modular Device Tree** approach. Instead of one giant file, they break the hardware into fragments:
 1.  **Base Board Source (`.dts`)**: Definitions for CPU, RAM, and internal peripherals.
-2.  **Remote-Port Overlays (`.dtsi`)**: Standard templates provided by Xilinx (found in `$PROJ_ROOT/qemu-devicetrees/`) that define the `remote-port` compatible nodes.
+2.  **Remote-Port Overlays (`.dtsi`)**: Standard templates provided by Xilinx (found in `~/Qemu/qemu-devicetrees/`) that define the `remote-port` compatible nodes.
     - *Example*: `zynqmp-pl-remoteport.dtsi` is the standard reference for ZynqMP Programmable Logic ports.
 
 ### The Merging Process
