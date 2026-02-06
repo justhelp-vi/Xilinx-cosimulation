@@ -1,4 +1,5 @@
 # Getting Started Guide
+NOTE: Update the paths of other folders, tools and file path according to your project setup if you face any path related issues.
 
 This guide covers the end-to-end setup and execution of the Xilinx QEMU + SystemC co-simulation environment.
 
@@ -63,8 +64,12 @@ echo "CXXFLAGS += -std=c++14" >> .config.mk
 echo "HAVE_VERILOG = n" >> .config.mk
 make
 ```
-
-### B. Device Trees
+### B. If header files missing
+```bash
+I have observed a issue at compiling the demo in some systems, where we manually need to update the path of the libsystemctlm-soc in the $PROJ_ROOT/systemctlm-cosim-demo
+Makefile. 
+```
+### C. Device Trees
 ```bash
 cd $PROJ_ROOT/qemu-devicetrees
 make
@@ -116,7 +121,6 @@ qemu-system-arm -M arm-generic-fdt -nographic \
 source scripts/setup_env.sh
 ./zynq_demo unix:./qemu-tmp/qemu-rport-_amba@0_cosim@0 10000
 ```
-
 ---
 
 ## ✅ Verification
